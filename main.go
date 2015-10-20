@@ -1,19 +1,27 @@
 package main
 
-import "github.com/denkhaus/beamer/tasks"
+import (
+	"bitbucket.org/denkhaus/mirsvc/util"
+	"github.com/denkhaus/beamer/tasks"
+	"github.com/denkhaus/tcgl/applog"
+)
 
 func main() {
 
-	Beamer.Set("second_dir", "/home/denkhaus/test2")
+	var beamer = Beamer.
+		Set("Second_dir", "/home/denkhaus/test2").
+		Set("Loc1", "localhost").
+		On("lulu")
 
-	seq := Beamer.Sequence(
-		tasks.Mkdir("/home/denkhaus/test1").
-			Descr("create first directory"),
-		tasks.Mkdir("{second_dir}").
-			Descr("create second directory").,
-
-		tasks.Copy.From("").To(""),
+	beamer = beamer.Sequence(
+		tasks.Mkdir("/home/denkhaus/test1").FileMode(0777).Descr("create first directory"),
+		tasks.Mkdir("{{.Second_dir}}").Descr("create directory by key/value"),
+	//	//	//tasks.Copy.From("/home/denkhaus/test1/testfile").To("{{.Second_dir}}/testfile").Descr("Copy important file"),
 	)
 
-	seq.Run()
+	if err := beamer.Run(); err != nil {
+		applog.Errorf("runtime error: %s", err)
+	}
+
+	util.Inspect(beamer.Build())
 }
